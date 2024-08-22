@@ -118,3 +118,6 @@ function resetGame() {
 
 // Display/DOM Logic //
 
+const display = {
+    options: document.querySelectorAll(".cell"),
+};

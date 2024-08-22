@@ -1,0 +1,22 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.gameboard {
+    border: solid black;
+    display: grid;
+    width: 300px;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.cell {
+    height: 100px;
+    width: 100px;
+    border: solid black;
+    box-sizing: border-box;
+}
