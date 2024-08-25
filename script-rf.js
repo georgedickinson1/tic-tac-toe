@@ -1,51 +1,52 @@
 // Display Logic //
 const display = {
+    cells: document.querySelectorAll(".cell"),
+    // chosenCells: [],
     activePlayerContainer: function(activePlayer) {
         const activeContainer = document.querySelector(".active-player");
         activeContainer.textContent = activePlayer;
     },
-    selectedCell: async function() {
+    markCell: function(activePlayer, cell) {
+        console.log(activePlayer, cell)
+    },
+    selectedCell: function(activePlayer) {
+        let mark = activePlayer.playerNumber === 1 ? "X" : "O";
+        console.log(activePlayer)
         return new Promise((resolve) => {
-            const cells = document.querySelectorAll(".cell");
-            cells.forEach(cell => {
+            this.cells.forEach(cell => {
                 cell.addEventListener("click", () => {
-                    let selectedCell = "";
-                    switch (cell.id) {
-                        case "a1":
-                            selectedCell = "A1";
-                            break;
-                        case "a2":
-                            selectedCell = "A2";
-                            break;
-                        case "a3":
-                            selectedCell = "A3";
-                            break;
-                        case "b1":
-                            selectedCell = "B1";
-                            break;
-                        case "b2":
-                            selectedCell = "B2";
-                            break;
-                        case "b3":
-                            selectedCell = "B3";
-                            break;
-                        case "c1":
-                            selectedCell = "C1";
-                            break;
-                        case "c2":
-                            selectedCell = "C2";
-                            break;
-                        case "c3":
-                            selectedCell = "C3";
-                            break;
-                    }
-                    if (selectedCell) {
-                        resolve(selectedCell); // Resolve the Promise with the selected cell
-                    }
-                }, { once: true }); // Ensures the event listener is removed after the first click
-            });
+                    if (cell.textContent === "") {  // Check if the cell is empty
+                        console.log(activePlayer);
+                        let selectedCell = "";
+                        switch (cell.id) {
+                            case "a1": selectedCell = "A1"; break;
+                            case "a2": selectedCell = "A2"; break;
+                            case "a3": selectedCell = "A3"; break;
+                            case "b1": selectedCell = "B1"; break;
+                            case "b2": selectedCell = "B2"; break;
+                            case "b3": selectedCell = "B3"; break;
+                            case "c1": selectedCell = "C1"; break;
+                            case "c2": selectedCell = "C2"; break;
+                            case "c3": selectedCell = "C3"; break;
+                            default: console.log("Try again"); break;
+                            }
+                            if (selectedCell) {
+                                cell.textContent = mark;
+                                // this.chosenCells.push(cell.id);
+                                this.markCell(activePlayer, selectedCell);
+                                resolve(selectedCell); // Resolve the Promise with the selected cell
+                            }
+                        }
+                    }),{ once: true }
+                })
         });
     },
+    resetDisplay: function() {
+        this.cells.forEach(cell => {
+            cell.textContent = ""; 
+        });
+        this.chosenCells = [];
+    }
 };
 
 // Game Logic //
@@ -60,17 +61,17 @@ const gameboard = (function(){
 })();
 
 // Player Object
-function createPlayer(name) {
+function createPlayer(name, playerNumber) {
     return {
         name: name,
         choices: [],
+        playerNumber: playerNumber,
         // Takes player's choice and checks against remaining positions on board
-        turn: async function() {
+        turn: async function(activePlayer) {
             // Use await to get the user's choice asynchronously
-            const choice = await display.selectedCell();
+            const choice = await display.selectedCell(activePlayer);
             
             if (gameboard.remainingPositions.includes(choice)) {
-                console.log("Passed");
                 this.choices.push(choice);
                 gameboard.removePosition(choice);
                 return choice; // Return the valid choice
@@ -82,8 +83,8 @@ function createPlayer(name) {
     };
 };
 
-let player1 = createPlayer("John");
-let player2 = createPlayer("Jane");
+let player1 = createPlayer("John", 1);
+let player2 = createPlayer("Jane", 2);
 
 // Game Controller Object
 const gameController = (function(player1, player2){
@@ -95,27 +96,25 @@ const gameController = (function(player1, player2){
     const switchActivePlayer = () => {
         if (activePlayer === player1) {
             activePlayer = player2;
-            // display.activePlayerContainer(activePlayer);
         } else if (activePlayer === player2) {
             activePlayer = player1;
-            // display.activePlayerContainer(activePlayer);
         };
     };
 
-
     async function gameLoop() {
         while (!gameOver) {
-            await activePlayer.turn();
+            display.activePlayerContainer(activePlayer.name);
+            const choice = await activePlayer.turn(activePlayer);
+            activePlayer.choices.push(choice);
+            gameboard.removePosition(choice);
             console.log(`${activePlayer.name} choices: ${activePlayer.choices}`);
             console.log("Remaining Positions: " + board.remainingPositions);
             checkGameOver();
             if (!gameOver) {
                 switchActivePlayer();
-                display.activePlayerContainer(activePlayer.name);
             }
         }
     }
-
 
     // Check if any winning positions have been chosen or game is tied
     function checkGameOver() {
@@ -149,6 +148,7 @@ const gameController = (function(player1, player2){
         player1.choices = [];
         player2.choices = [];
         gameOver = false;
+        display.resetDisplay();
         console.log("Game Reset");
     };
     gameLoop();
