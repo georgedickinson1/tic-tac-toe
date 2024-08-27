@@ -42,10 +42,6 @@ h1 {
     background-color: #e4e4e4;
 }
 
-/* .mark {
-    -webkit-text-stroke: 1px background-color;
-} */
-
 .players {
     display: flex;
     gap: 100px;
@@ -55,14 +51,19 @@ h1 {
 
 .players > div {
     height: 50px;
-    width: 175px;
+    min-width: 175px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     font-weight: 300;
-    /* border: 1px solid rgb(185, 185, 185); */
+    text-overflow:ellipsis;
+    overflow: hidden;
+}
+
+.players > div:focus {
+    outline: none;
 }
 
 .instruction {
@@ -90,3 +91,50 @@ footer > a {
 footer > a:visited {
     color: black;
 }
+
+.modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 200px;
+    padding: 1rem;
+    height: 25px;
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: 200ms ease-in-out;
+    z-index: 2;
+  }
+
+  .winner {
+    font-weight: 300;
+    font-size: 46px;
+  }
+
+  .modal.active {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1;
+    transition: 100ms ease-in-out;
+    opacity: 0;
+    pointer-events: none;
+    transition: 200ms ease-in-out;
+  }
+
+  .overlay.active {
+    pointer-events: all;
+    opacity: 1;
+  }

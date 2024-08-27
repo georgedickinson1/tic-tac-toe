@@ -67,12 +67,12 @@ const gameController = (function(player1, player2) {
             for (let position of winningPositions) {
                 if (includesAll(player1.choices, position)) {
                     console.log("Player 1 has won!");
-
+                    display.winnerModal(this.activePlayer);
                     this.resetGame();
                     return true; // Stop the function if Player 1 wins
                 } else if (includesAll(player2.choices, position)) {
                     console.log("Player 2 has won!");
-
+                    display.winnerModal(this.activePlayer);
                     this.resetGame();
                     return true; // Stop the function if Player 2 wins
                 }
@@ -81,6 +81,7 @@ const gameController = (function(player1, player2) {
             // If no one has won and no remaining positions, it's a tie
             if (gameboard.remainingPositions.length === 0) {
                 console.log("Tie");
+                display.winnerModal("tie");
                 this.resetGame();
                 return true;
             }
@@ -129,12 +130,6 @@ const display = {
     // Property assigned to cells that can be selected
     cells: document.querySelectorAll(".cell"), 
 
-    // Method to display active player name
-    // activePlayerContainer: function(activePlayer) {
-    //     const activeContainer = document.querySelector(".active-player");
-    //     activeContainer.textContent = activePlayer;
-    // },
-
     // Method to change background color of player container to indicate active player
     activePlayerMark: function(activePlayer) {
         const player1Container = document.querySelector(".player1");
@@ -159,8 +154,22 @@ const display = {
             // When a cell is clicked call selectedCell method on current cell
             cell.addEventListener("click", this.selectedCell.bind(this));
         });
-        // Display active player name on initialization
+        // Indicate which player whose go it is first
         this.activePlayerMark(gameController.activePlayer);
+        // User to change player name
+        const player1Name = document.querySelector(".player1");
+        const player2Name = document.querySelector(".player2");
+        player1Name.addEventListener("click", () => {
+            player1Name.contentEditable = "true";
+            // TODO: When click out, save player name
+        });
+        player2Name.addEventListener("click", () => {
+            player2Name.contentEditable = "true";
+        });
+        document.addEventListener("click", () => {
+            player1.name = player1Name.textContent;
+            player2.name = player2Name.textContent;
+        })
     },
 
     // Method to mark cell with active player's symbol
@@ -169,6 +178,31 @@ const display = {
             selectedCell.innerHTML = `<i class="mark fa-solid fa-x"></i>`
         } else if (gameController.activePlayer.mark === "o") {
             selectedCell.innerHTML = `<i class="mark fa-solid fa-o" style="font-size: 1.1em"></i>`
+        };
+    },
+
+    // Modal to announce winner
+    winnerModal: function(activePlayer) {
+        const modal = document.querySelector(".modal");
+        const overlay = document.querySelector(".overlay");
+        const winner = document.querySelector(".winner");
+        modal.classList.add("active");
+        overlay.classList.add("active");
+        const closeModal = function () {
+            modal.classList.remove("active");
+            overlay.classList.remove("active");
+        };
+        
+        overlay.addEventListener("click", () => {
+            closeModal(modal);
+        })
+        modal.addEventListener("click", () => {
+            closeModal(modal);
+        })
+        if (activePlayer === "tie") {
+            winner.innerHTML = `<h2 class="winner">Draw<h2>`
+        } else {
+            winner.innerHTML = `<h2 class="winner">Winner:&nbsp${activePlayer.name}<h2>`;
         };
     },
 
