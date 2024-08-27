@@ -14,17 +14,18 @@ const gameboard = (function(){
 })();
 
 // Factory function to create a player object
-function createPlayer(name, mark) {
+function createPlayer(name, mark, playerNumber) {
     return {
         name: name, // Player's name
         choices: [], // Array to store player's chosen positions
-        mark: mark
+        mark: mark,
+        playerNumber: playerNumber,
     };
 };
 
 // Temporary intialization of two players
-let player1 = createPlayer("John", "×");
-let player2 = createPlayer("Jane", "○");
+let player1 = createPlayer("John", "x", 1);
+let player2 = createPlayer("Jane", "o", 2);
 
 // IIFE that creates a gamecontroller object, managing the game state
 const gameController = (function(player1, player2) {
@@ -62,34 +63,42 @@ const gameController = (function(player1, player2) {
             // Function to check if player's choices include any winning position
             const includesAll = (arr, values) => values.every(v => arr.includes(v));
 
-            // Iterate through winning positions and check if any pkayer has won
-            winningPositions.forEach(position => {
+            // Iterate through winning positions and check if any player has won
+            for (let position of winningPositions) {
                 if (includesAll(player1.choices, position)) {
                     console.log("Player 1 has won!");
+
                     this.resetGame();
+                    return true; // Stop the function if Player 1 wins
                 } else if (includesAll(player2.choices, position)) {
                     console.log("Player 2 has won!");
+
                     this.resetGame();
-                } else if (gameboard.remainingPositions.length === 0) {
-                    console.log("Tie");
-                    this.resetGame();
+                    return true; // Stop the function if Player 2 wins
                 }
-            });
+            }
+
+            // If no one has won and no remaining positions, it's a tie
+            if (gameboard.remainingPositions.length === 0) {
+                console.log("Tie");
+                this.resetGame();
+                return true;
+            }
+            
+            return false; // No win or tie, continue the game
         },
 
         // Main game loop: handles game progression after each move
         gameLoop: function() {
-            console.log(this.activePlayer.name)
-            console.log(this.activePlayer.choices)
 
             // Check if game is over after current move
             this.checkGameOver();
-
+            
             // Switch to other player for next turn
             this.switchActivePlayer();
 
             // Display new active player's name
-            display.activePlayerContainer(this.activePlayer.name)
+            display.activePlayerMark(this.activePlayer)
         },
 
         // Method to verify player made a valid choice
@@ -121,10 +130,28 @@ const display = {
     cells: document.querySelectorAll(".cell"), 
 
     // Method to display active player name
-    activePlayerContainer: function(activePlayer) {
-        const activeContainer = document.querySelector(".active-player");
-        activeContainer.textContent = activePlayer;
+    // activePlayerContainer: function(activePlayer) {
+    //     const activeContainer = document.querySelector(".active-player");
+    //     activeContainer.textContent = activePlayer;
+    // },
+
+    // Method to change background color of player container to indicate active player
+    activePlayerMark: function(activePlayer) {
+        const player1Container = document.querySelector(".player1");
+        const player2Container = document.querySelector(".player2");
+        if (activePlayer.playerNumber === 1) {
+            player1Container.style.backgroundColor = "#6bff97";
+            player2Container.style.backgroundColor = "rgb(245, 245, 245)";
+            player1Container.style.boxShadow = "0px 0px 50px 10px #6bff97";
+            player2Container.style.boxShadow = "none";
+        } else if (activePlayer.playerNumber === 2) {
+            player2Container.style.backgroundColor = "#6bff97";
+            player1Container.style.backgroundColor = "rgb(245, 245, 245)";
+            player2Container.style.boxShadow = "0px 0px 50px 10px #6bff97";
+            player1Container.style.boxShadow = "none";
+        };
     },
+    
     
     // Event handler added to each cell on initialization
     init: function() {
@@ -133,14 +160,16 @@ const display = {
             cell.addEventListener("click", this.selectedCell.bind(this));
         });
         // Display active player name on initialization
-        this.activePlayerContainer(gameController.activePlayer.name);
+        this.activePlayerMark(gameController.activePlayer);
     },
 
     // Method to mark cell with active player's symbol
     markCell: function(selectedCell) {
-        console.log("marked");
-        console.log(selectedCell);
-        selectedCell.textContent = gameController.activePlayer.mark;
+        if (gameController.activePlayer.mark === "x") {
+            selectedCell.innerHTML = `<i class="mark fa-solid fa-x"></i>`
+        } else if (gameController.activePlayer.mark === "o") {
+            selectedCell.innerHTML = `<i class="mark fa-solid fa-o" style="font-size: 1.1em"></i>`
+        };
     },
 
     // Method to clear gameboard of all marks
@@ -153,7 +182,6 @@ const display = {
     // Method to check which cell was clicked
     selectedCell: function(event) {
         const cell = event.target;
-        console.log(cell)
         let selectedCell = "";
         switch (cell.id) {
             case "a1": selectedCell = "A1"; break;
